@@ -8,8 +8,7 @@ Application de **pilotage financier** : grilles TJM, ressources, clients, projet
 |--------|-------------|
 | **backend-spring** | API Spring Boot 3 (Java 17), JWT, PostgreSQL, JPA |
 | **frontend** | Interface React (Vite), Dashboard, Facturation, Guide utilisateur |
-| **backend** | Ancienne version Python (FastAPI) – optionnelle |
-| **backend-node** | Ancienne version Node.js – optionnelle |
+
 
 **Stack utilisée** : backend-spring + frontend (Vite/React).
 
