@@ -1,0 +1,62 @@
+# --- Build / dépendances ---
+node_modules/
+frontend/node_modules/
+backend-node/node_modules/
+backend-spring/target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# --- IDE / éditeurs ---
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# --- Environnement ---
+.env
+.env.local
+.env.*.local
+*.env
+
+# --- Frontend (Vite) ---
+frontend/dist/
+frontend/.vite/
+*.local
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+.venv/
+*.egg-info/
+.eggs/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Logs / temporaires ---
+*.log
+*.tmp
+*.temp
+*.swp
+*~
+
+# --- Maven ---
+backend-spring/target/
+!.mvn/wrapper/maven-wrapper.jar

@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGDim - Système Complet de Pilotage Financier</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            font-size: 13px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 18px 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 { font-size: 1.5em; margin-bottom: 4px; }
+        .header p { opacity: 0.9; font-size: 0.8em; }
+        
+        .container { max-width: 1900px; margin: 0 auto; padding: 20px; }
+        
+        .nav-tabs {
+            display: flex; gap: 6px; margin-bottom: 20px;
+            background: white; padding: 10px; border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 8px 16px; border: none; background: #f0f0f0;
+            border-radius: 6px; cursor: pointer; font-size: 0.85em;
+            font-weight: 500; transition: all 0.3s;
+        }
+        
+        .tab-btn:hover { background: #e0e0e0; }
+        .tab-btn.active { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .kpi-label { color: #666; font-size: 0.8em; margin-bottom: 6px; }
+        .kpi-value { font-size: 1.6em; font-weight: bold; color: #333; }
+        .kpi-subtitle { color: #999; font-size: 0.75em; margin-top: 4px; }
+        
+        .form-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+        }
+        
+        .form-title {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #333;
+            border-left: 3px solid #3b82f6;
+            padding-left: 12px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group { display: flex; flex-direction: column; }
+        
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+            font-size: 0.85em;
+        }
+        
+        .form-group .required { color: #ef4444; }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.9em;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .form-group textarea { resize: vertical; min-height: 50px; }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); }
+        .btn-success { background: #10b981; color: white; }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-small { padding: 5px 10px; font-size: 0.8em; }
+        
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-x: auto;
+            margin-bottom: 18px;
+        }
+        
+        .table-header {
+            padding: 15px 18px;
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .table-title { font-size: 1.1em; font-weight: 600; color: #333; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #f9fafb; }
+        
+        th {
+            padding: 10px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #e5e7eb;
+            white-space: nowrap;
+            font-size: 0.85em;
+        }
+        
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.85em;
+        }
+        
+        tbody tr:hover { background: #f9fafb; }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+        
+        .badge-profile { background: #dbeafe; color: #1e40af; }
+        .badge-level { background: #fef3c7; color: #b45309; }
+        .badge-cgdim { background: #dbeafe; color: #1e40af; }
+        .badge-outsourcing { background: #fce7f3; color: #9f1239; }
+        .badge-refacturable { background: #d1fae5; color: #065f46; }
+        .badge-indirect { background: #fee2e2; color: #991b1b; }
+        
+        .info-box {
+            background: #eff6ff;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 18px;
+        }
+        
+        .info-box-title { font-weight: 600; color: #1e40af; margin-bottom: 8px; font-size: 1em; }
+        .info-box-content { color: #1e3a8a; line-height: 1.5; font-size: 0.85em; }
+        
+        .variance-positive { color: #10b981; font-weight: 600; }
+        .variance-negative { color: #ef4444; font-weight: 600; }
+        
+        .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        @media (max-width: 1200px) {
+            .grid-2col { grid-template-columns: 1fr; }
+        }
+        
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, transparent);
+            margin: 25px 0;
+        }
+        
+        /* Login & Roles */
+        #login-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            padding: 20px;
+        }
+        #login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            max-width: 400px;
+            width: 100%;
+        }
+        #login-box h2 { margin-bottom: 24px; color: #1e3a8a; font-size: 1.5em; }
+        #login-box .form-group { margin-bottom: 16px; }
+        #login-box label { display: block; margin-bottom: 6px; font-weight: 600; color: #555; }
+        #login-box input, #login-box select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        #login-box button { width: 100%; padding: 14px; margin-top: 8px; }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .user-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+        }
+        .user-badge .role { font-weight: 600; text-transform: uppercase; }
+        .btn-logout { background: rgba(255,255,255,0.25); color: white; padding: 6px 14px; font-size: 0.85em; }
+        .btn-logout:hover { background: rgba(255,255,255,0.4); }
+        #app-content { display: none; }
+        #app-content.logged-in { display: block; }
+        
+        /* Charts */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 18px;
+            min-height: 280px;
+        }
+        .chart-card h3 { font-size: 1em; margin-bottom: 12px; color: #333; }
+        .chart-container { position: relative; height: 240px; }
+    </style>
+</head>
+<body>
+    <!-- Écran de connexion -->
+    <div id="login-screen">
+        <div id="login-box">
+            <h2>🔐 Connexion CGDim</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Nom d'utilisateur</label>
+                    <input type="text" id="login-username" required placeholder="Votre nom" value="">
+                </div>
+                <div class="form-group">
+                    <label>Rôle</label>
+                    <select id="login-role" required>
+                        <option value="admin">Administrateur (accès complet)</option>
+                        <option value="expert">Expert (saisie & rapports)</option>
+                        <option value="user">Utilisateur (consultation)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Se connecter</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="app-content">
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <h1>💼 CGDim - Système Complet de Pilotage Financier</h1>
+            <p>Grilles TJM modulables, charges refacturables, répartition indirecte, analyse d'écarts et taux de change</p>
+        </div>
+        <div class="header-right">
+            <span class="user-badge"><span id="header-username"></span> <span class="role" id="header-role"></span></span>
+            <button type="button" class="btn btn-logout" onclick="logout()">Déconnexion</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab-btn" onclick="switchTab('profiles')">👤 Profils & Niveaux</button>
+            <button class="tab-btn" onclick="switchTab('tjm-grids')">📋 Grilles TJM</button>
+            <button class="tab-btn" onclick="switchTab('resources')">👥 Ressources</button>
+            <button class="tab-btn" onclick="switchTab('clients')">🏢 Clients/BU</button>
+            <button class="tab-btn" onclick="switchTab('direct-charges')">💳 Charges Refacturables</button>
+            <button class="tab-btn" onclick="switchTab('indirect-costs')">🏗️ Charges Indirectes</button>
+            <button class="tab-btn" onclick="switchTab('billing')">💰 Facturation</button>
+            <button class="tab-btn" onclick="switchTab('variances')">📈 Analyse Écarts</button>
+            <button class="tab-btn tab-settings" onclick="switchTab('settings')">⚙️ Paramètres</button>
+        </div>
+        
+        <!-- Dashboard -->
+        <div id="dashboard" class="tab-content active">
+            <div class="info-box">
+                <div class="info-box-title">📌 Vue d'ensemble Financière</div>
+                <div class="info-box-content">
+                    Modèle de grille actif : <strong id="active-grid-model">Par Profil (2026)</strong> | 
+                    Jours productifs/an : <strong id="productive-days-year">229</strong> | 
+                    Taux de change budget : <strong id="budget-exchange-rate">10.80 MAD/EUR</strong>
+                </div>
+            </div>
+            
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Effectifs Productifs</div>
+                    <div class="kpi-value" id="kpi-productive">0</div>
+                    <div class="kpi-subtitle">Ressources facturables</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Effectifs Non-Productifs</div>
+                    <div class="kpi-value" id="kpi-non-productive">0</div>
+                    <div class="kpi-subtitle">Admin, RH, Finance, IT</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">CA Mensuel Total</div>
+                    <div class="kpi-value" id="kpi-total-ca">0 €</div>
+                    <div class="kpi-subtitle">TJM + Refacturables + Marge</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Charges Directes</div>
+                    <div class="kpi-value" id="kpi-direct-costs">0 €</div>
+                    <div class="kpi-subtitle">Salaires + Refacturables</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Charges Indirectes</div>
+                    <div class="kpi-value" id="kpi-indirect-costs">0 €</div>
+                    <div class="kpi-subtitle">Non-productifs + Frais gén.</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Marge d'Exploitation</div>
+                    <div class="kpi-value" id="kpi-margin">0 €</div>
+                    <div class="kpi-subtitle">CA - Charges totales</div>
+                </div>
+            </div>
+            
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>📊 Répartition CA par profil</h3>
+                    <div class="chart-container"><canvas id="chart-profile-ca"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>🏢 CA par client (Top 6)</h3>
+                    <div class="chart-container"><canvas id="chart-clients-ca"></canvas></div>
+                </div>
+                <div class="chart-card">
+                    <h3>💰 Synthèse financière</h3>
+                    <div class="chart-container"><canvas id="chart-kpi-summary"></canvas></div>
+                </div>
+            </div>
+            
+            <div class="grid-2col">
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">📊 Répartition par Profil</div>
+                    </div>
+                    <div id="dashboard-profile-breakdown"></div>
+                </div>
+                
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">🏢 Top 5 Clients par CA</div>
+                    </div>
+                    <div id="dashboard-top-clients"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profiles & Levels -->
+        <div id="profiles" class="tab-content">
+            <div class="info-box">
+                <div class="info-box-title">🎯 Gestion des Profils et Niveaux</div>
+                <div class="info-box-content">
+                    Définissez vos profils métiers (Dev Junior, Testeur Senior...) et vos niveaux (1-8). 
+                    Ces éléments serviront de base pour les grilles TJM selon le modèle actif.
+                </div>
+            </div>
+            
+            <div class="grid-2col edit-only">
+                <div class="form-card">
+                    <h2 class="form-title">➕ Ajouter un Profil</h2>
+                    <form id="profile-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Nom du Profil <span class="required">*</span></label>
+                                <input type="text" id="profile-name" required placeholder="Ex: Développeur Junior">
+                            </div>
+                            <div class="form-group">
+                                <label>Code <span class="required">*</span></label>
+                                <input type="text" id="profile-code" required placeholder="Ex: DEV_JR">
+                            </div>
+                            <div class="form-group">
+                                <label>Salaire Moyen Pondéré (MAD)</label>
+                                <input type="number" id="profile-avg-salary" min="0" step="100" placeholder="Ex: 9000">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                    </form>
+                </div>
+                
+                <div class="form-card">
+                    <h2 class="form-title">➕ Ajouter un Niveau (1-8)</h2>
+                    <form id="level-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Numéro Niveau <span class="required">*</span></label>
+                                <input type="number" id="level-number" required min="1" max="8" placeholder="1-8">
+                            </div>
+                            <div class="form-group">
+                                <label>Libellé</label>
+                                <input type="text" id="level-label" placeholder="Ex: Débutant, Expert...">
+                            </div>
+                            <div class="form-group">
+                                <label>Salaire Moyen Pondéré (MAD)</label>
+                                <input type="number" id="level-avg-salary" min="0" step="100">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="grid-2col">
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">👤 Liste des Profils</div>
+                    </div>
+                    <div id="profiles-table"></div>
+                </div>
+                
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">📊 Liste des Niveaux</div>
+                    </div>
+                    <div id="levels-table"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- TJM Grids -->
+        <div id="tjm-grids" class="tab-content">
+            <div class="info-box">
+                <div class="info-box-title">📋 Grilles TJM Modulables</div>
+                <div class="info-box-content">
+                    <strong>2026:</strong> Grille par Profil (chaque profil a son TJM)<br>
+                    <strong>2027+:</strong> Grille par Niveau (même grille pour tous, différenciation par niveau 1-8)<br>
+                    Choisissez le modèle actif et configurez les TJM correspondants.
+                </div>
+            </div>
+            
+            <div class="form-card edit-only">
+                <h2 class="form-title">⚙️ Modèle de Grille Actif</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Modèle Actuel <span class="required">*</span></label>
+                        <select id="tjm-model" onchange="switchTjmModel()">
+                            <option value="profile">Par Profil (2026)</option>
+                            <option value="level">Par Niveau (2027+)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="tjm-profile-section">
+                <div class="form-card edit-only">
+                    <h2 class="form-title">💰 TJM par Profil</h2>
+                    <form id="tjm-profile-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Profil <span class="required">*</span></label>
+                                <select id="tjm-profile-select" required>
+                                    <option value="">Sélectionner...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>TJM (EUR) <span class="required">*</span></label>
+                                <input type="number" id="tjm-profile-value" required min="0" step="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Date d'Application</label>
+                                <input type="date" id="tjm-profile-date">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 Définir le TJM</button>
+                    </form>
+                </div>
+                
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">📋 Grille TJM par Profil</div>
+                    </div>
+                    <div id="tjm-profile-table"></div>
+                </div>
+            </div>
+            
+            <div id="tjm-level-section" style="display:none;">
+                <div class="form-card edit-only">
+                    <h2 class="form-title">💰 TJM par Niveau</h2>
+                    <form id="tjm-level-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Niveau <span class="required">*</span></label>
+                                <select id="tjm-level-select" required>
+                                    <option value="">Sélectionner...</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>TJM (EUR) <span class="required">*</span></label>
+                                <input type="number" id="tjm-level-value" required min="0" step="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Date d'Application</label>
+                                <input type="date" id="tjm-level-date">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">💾 Définir le TJM</button>
+                    </form>
+                </div>
+                
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">📋 Grille TJM par Niveau</div>
+                    </div>
+                    <div id="tjm-level-table"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Resources -->
+        <div id="resources" class="tab-content">
+            <div class="form-card edit-only">
+                <h2 class="form-title">➕ Ajouter une Ressource</h2>
+                <form id="resource-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Type <span class="required">*</span></label>
+                            <select id="res-type" required onchange="toggleResourceType()">
+                                <option value="productive">Productif (Facturable)</option>
+                                <option value="non-productive">Non-Productif (Admin/RH/Finance)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Nom <span class="required">*</span></label>
+                            <input type="text" id="res-name" required>
+                        </div>
+                        <div class="form-group" id="res-profile-group">
+                            <label>Profil <span class="required">*</span></label>
+                            <select id="res-profile">
+                                <option value="">Sélectionner...</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="res-level-group" style="display:none;">
+                            <label>Niveau</label>
+                            <select id="res-level">
+                                <option value="">Sélectionner...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Entité <span class="required">*</span></label>
+                            <select id="res-entity" required>
+                                <option value="cgdim">CGDim Maroc</option>
+                                <option value="outsourcing">CGDim Outsourcing</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="res-client-group">
+                            <label>Client/BU</label>
+                            <select id="res-client">
+                                <option value="">Sélectionner...</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="res-dept-group" style="display:none;">
+                            <label>Département</label>
+                            <select id="res-department">
+                                <option value="admin">Administration</option>
+                                <option value="rh">Ressources Humaines</option>
+                                <option value="finance">Finance</option>
+                                <option value="it">Informatique</option>
+                                <option value="direction">Direction</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Salaire Réel (MAD) <span class="required">*</span></label>
+                            <input type="number" id="res-salary" required min="0" step="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Primes (MAD)</label>
+                            <input type="number" id="res-bonus" value="0" min="0" step="50">
+                        </div>
+                        <div class="form-group">
+                            <label>Date Début</label>
+                            <input type="date" id="res-start-date">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                </form>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">👥 Liste des Ressources</div>
+                </div>
+                <div id="resources-table"></div>
+            </div>
+        </div>
+        
+        <!-- Clients -->
+        <div id="clients" class="tab-content">
+            <div class="form-card edit-only">
+                <h2 class="form-title">➕ Ajouter un Client/BU</h2>
+                <form id="client-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Nom <span class="required">*</span></label>
+                            <input type="text" id="client-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Code <span class="required">*</span></label>
+                            <input type="text" id="client-code" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="client-description"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                </form>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">🏢 Liste des Clients/BU</div>
+                </div>
+                <div id="clients-table"></div>
+            </div>
+        </div>
+        
+        <!-- Direct Charges -->
+        <div id="direct-charges" class="tab-content">
+            <div class="info-box">
+                <div class="info-box-title">💳 Charges Directes Refacturables</div>
+                <div class="info-box-content">
+                    Déplacements, réceptions, formations, licenciements... toute charge identifiée comptablement comme refacturable à un client spécifique.
+                </div>
+            </div>
+            
+            <div class="form-card edit-only">
+                <h2 class="form-title">➕ Ajouter une Charge Refacturable</h2>
+                <form id="charge-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Type <span class="required">*</span></label>
+                            <select id="charge-type" required>
+                                <option value="deplacement">Déplacement</option>
+                                <option value="reception">Réception</option>
+                                <option value="formation">Formation</option>
+                                <option value="licenciement">Licenciement</option>
+                                <option value="autre">Autre</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Client <span class="required">*</span></label>
+                            <select id="charge-client" required>
+                                <option value="">Sélectionner...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Ressource Concernée</label>
+                            <select id="charge-resource">
+                                <option value="">Sélectionner...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Montant (MAD) <span class="required">*</span></label>
+                            <input type="number" id="charge-amount" required min="0" step="0.01">
+                        </div>
+                        <div class="form-group">
+                            <label>Date <span class="required">*</span></label>
+                            <input type="date" id="charge-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea id="charge-description"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+                </form>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">💳 Charges Refacturables</div>
+                </div>
+                <div id="charges-table"></div>
+            </div>
+        </div>
+        
+        <!-- Indirect Costs -->
+        <div id="indirect-costs" class="tab-content">
+            <div class="info-box">
+                <div class="info-box-title">🏗️ Charges Indirectes - Répartition</div>
+                <div class="info-box-content">
+                    <strong>1. Effectifs non-productifs:</strong> Répartis par masse salariale des productifs<br>
+                    <strong>2. Frais généraux:</strong> Répartis par nombre d'effectifs productifs
+                </div>
+            </div>
+            
+            <div class="form-card edit-only">
+                <h2 class="form-title">💰 Frais Généraux Mensuels (MAD)</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Loyers</label>
+                        <input type="number" id="overhead-rent" min="0" step="100" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Maintenance</label>
+                        <input type="number" id="overhead-maintenance" min="0" step="100" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Nettoyage</label>
+                        <input type="number" id="overhead-cleaning" min="0" step="100" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Télécoms</label>
+                        <input type="number" id="overhead-telecoms" min="0" step="100" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Amortissements</label>
+                        <input type="number" id="overhead-depreciation" min="0" step="100" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Autres Frais</label>
+                        <input type="number" id="overhead-other" min="0" step="100" value="0">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveOverhead()">💾 Sauvegarder</button>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">📊 Répartition des Charges Indirectes par Client</div>
+                </div>
+                <div id="indirect-allocation-table"></div>
+            </div>
+        </div>
+        
+        <!-- Billing -->
+        <div id="billing" class="tab-content">
+            <div class="form-card">
+                <h2 class="form-title">📅 Paramètres de Facturation</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Mois <span class="required">*</span></label>
+                        <input type="month" id="billing-month" required onchange="calculateBilling()">
+                    </div>
+                    <div class="form-group">
+                        <label>Taux de Change BKM (MAD/EUR)</label>
+                        <input type="number" id="billing-exchange-rate" step="0.01" value="10.80" onchange="calculateBilling()">
+                    </div>
+                    <div class="form-group">
+                        <label>Jours Ouvrés Réels</label>
+                        <input type="number" id="billing-working-days" min="1" max="31" value="20" onchange="calculateBilling()">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="billing-results"></div>
+        </div>
+        
+        <!-- Variances -->
+        <div id="variances" class="tab-content">
+            <div class="info-box">
+                <div class="info-box-title">📈 Analyse des Écarts Budget vs Réel</div>
+                <div class="info-box-content">
+                    Comparez les données budgétées (salaires moyens pondérés, jours productifs standards) avec la réalité (salaires réels, jours travaillés effectifs).
+                </div>
+            </div>
+            
+            <div class="grid-2col">
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">💰 Écarts Salaires par Profil</div>
+                    </div>
+                    <div id="salary-variance-table"></div>
+                </div>
+                
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="table-title">📅 Écart Jours Productifs</div>
+                    </div>
+                    <div id="days-variance-table"></div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">💱 Impact Taux de Change</div>
+                </div>
+                <div id="exchange-rate-variance"></div>
+            </div>
+        </div>
+        
+        <!-- Settings -->
+        <div id="settings" class="tab-content">
+            <div class="form-card">
+                <h2 class="form-title">⚙️ Paramètres Généraux</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Marge CGDim Maroc (%)</label>
+                        <input type="number" id="margin-cgdim" value="8" min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Marge CGDim Outsourcing (%)</label>
+                        <input type="number" id="margin-outsourcing" value="5" min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Jours Productifs/An (Budget)</label>
+                        <input type="number" id="productive-days-budget" value="229" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Taux Change Budget (MAD/EUR)</label>
+                        <input type="number" id="exchange-rate-budget" value="10.80" step="0.01">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveSettings()">💾 Sauvegarder</button>
+            </div>
+            
+            <div class="form-card">
+                <h2 class="form-title">💾 Gestion des Données</h2>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn btn-success" onclick="exportAllData()">📤 Exporter</button>
+                    <button class="btn btn-danger btn-reset-data" onclick="resetAllData()">🗑️ Réinitialiser</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div><!-- #app-content -->
+    
+    <script>
+        // API First - Security by design: JWT, CORS, validation côté API
+        const API_BASE = (window.location.origin.includes('localhost') || window.location.origin === 'file://' || window.location.origin === '') 
+            ? 'http://localhost:8000/api/v1' : (window.location.origin + '/api/v1');
+        function getToken() { return localStorage.getItem('cgdim-token'); }
+        function setToken(t) { if (t) localStorage.setItem('cgdim-token', t); else localStorage.removeItem('cgdim-token'); }
+        async function api(path, options = {}) {
+            const url = path.startsWith('http') ? path : (API_BASE + path);
+            const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+            if (getToken()) headers['Authorization'] = 'Bearer ' + getToken();
+            const res = await fetch(url, { ...options, headers });
+            if (res.status === 401) { setToken(null); currentUser = null; try { document.getElementById('login-screen').style.display = 'flex'; document.getElementById('app-content').classList.remove('logged-in'); } catch(e){} throw new Error('Session expirée'); }
+            if (!res.ok) { const t = await res.text(); throw new Error(t || res.statusText); }
+            if (res.status === 204) return; return res.json();
+        }
+        
+        const ROLES_LABELS = { admin: 'Administrateur', expert: 'Expert', user: 'Utilisateur' };
+        let currentUser = JSON.parse(localStorage.getItem('cgdim-currentUser')) || null;
+        let profiles = [], levels = [], tjmGrids = { profile: {}, level: {} }, resources = [], clients = [], charges = [];
+        let settings = { tjmModel: 'profile', marginCgdim: 8, marginOutsourcing: 5, productiveDaysBudget: 229, exchangeRateBudget: 10.80, overhead: { rent: 0, maintenance: 0, cleaning: 0, telecoms: 0, depreciation: 0, other: 0 } };
+        
+        async function loadAllData() {
+            try {
+                const [profilesData, levelsData, tjmData, resourcesData, clientsData, chargesData, settingsData] = await Promise.all([
+                    api('/profiles'), api('/levels'), api('/tjm'), api('/resources'), api('/clients'), api('/charges'), api('/settings')
+                ]);
+                profiles = profilesData || [];
+                levels = levelsData || [];
+                tjmGrids = { profile: (tjmData && tjmData.grids && tjmData.grids.profile) || {}, level: (tjmData && tjmData.grids && tjmData.grids.level) || {} };
+                resources = resourcesData || [];
+                clients = clientsData || [];
+                charges = chargesData || [];
+                settings = settingsData || settings;
+                loadSettings();
+                updateAllSelects();
+                updateDashboard();
+                renderAllTables();
+            } catch (err) {
+                console.error(err);
+                if (!getToken()) return;
+                alert('Erreur chargement: ' + (err.message || err));
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            if (getToken() && currentUser) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-content').classList.add('logged-in');
+                document.getElementById('header-username').textContent = currentUser.username + ' • ';
+                document.getElementById('header-role').textContent = ROLES_LABELS[currentUser.role] || currentUser.role;
+                applyRoleVisibility();
+                loadAllData();
+            }
+            document.getElementById('login-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('login-username').value.trim();
+                const role = document.getElementById('login-role').value;
+                try {
+                    const res = await api('/auth/login', { method: 'POST', body: JSON.stringify({ username, role }) });
+                    setToken(res.access_token);
+                    currentUser = { username: res.username, role: res.role };
+                    localStorage.setItem('cgdim-currentUser', JSON.stringify(currentUser));
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('app-content').classList.add('logged-in');
+                    document.getElementById('header-username').textContent = currentUser.username + ' • ';
+                    document.getElementById('header-role').textContent = ROLES_LABELS[currentUser.role] || currentUser.role;
+                    applyRoleVisibility();
+                    await loadAllData();
+                } catch (err) {
+                    alert('Connexion impossible. Démarrez l\'API (backend): ' + (err.message || err));
+                }
+            });
+        });
+        
+        function logout() {
+            setToken(null);
+            currentUser = null;
+            localStorage.removeItem('cgdim-currentUser');
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('app-content').classList.remove('logged-in');
+        }
+        
+        function applyRoleVisibility() {
+            if (!currentUser) return;
+            const role = currentUser.role;
+            document.querySelectorAll('.tab-settings').forEach(el => { el.style.display = (role === 'user') ? 'none' : ''; });
+            document.querySelectorAll('.edit-only').forEach(el => { el.style.display = (role === 'user') ? 'none' : ''; });
+            document.querySelectorAll('.btn-danger.btn-small').forEach(el => { el.style.display = (role === 'user') ? 'none' : ''; });
+            document.querySelectorAll('.btn-reset-data').forEach(el => { el.style.display = (role === 'admin') ? '' : 'none'; });
+        }
+        
+        // Tab Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'dashboard') updateDashboard();
+            else if (tabName === 'variances') renderVariances();
+            else if (tabName === 'billing') calculateBilling();
+            else if (tabName === 'indirect-costs') renderIndirectAllocation();
+        }
+        
+        // Toggle Resource Type
+        function toggleResourceType() {
+            const type = document.getElementById('res-type').value;
+            const clientGroup = document.getElementById('res-client-group');
+            const deptGroup = document.getElementById('res-dept-group');
+            
+            if (type === 'productive') {
+                clientGroup.style.display = 'flex';
+                deptGroup.style.display = 'none';
+            } else {
+                clientGroup.style.display = 'none';
+                deptGroup.style.display = 'flex';
+            }
+        }
+        
+        // Switch TJM Model (API) - user change; applyTjmModelUI = sync UI only (e.g. after load)
+        function applyTjmModelUI() {
+            const model = settings.tjmModel || document.getElementById('tjm-model').value;
+            if (model === 'profile') {
+                document.getElementById('tjm-profile-section').style.display = 'block';
+                document.getElementById('tjm-level-section').style.display = 'none';
+                document.getElementById('res-level-group').style.display = 'none';
+                document.getElementById('res-profile-group').style.display = 'flex';
+            } else {
+                document.getElementById('tjm-profile-section').style.display = 'none';
+                document.getElementById('tjm-level-section').style.display = 'block';
+                document.getElementById('res-level-group').style.display = 'flex';
+                document.getElementById('res-profile-group').style.display = 'flex';
+            }
+        }
+        async function switchTjmModel() {
+            const val = document.getElementById('tjm-model').value;
+            try {
+                await api('/tjm/model', { method: 'PUT', body: JSON.stringify({ tjmModel: val }) });
+                settings.tjmModel = val;
+            } catch (e) { console.error(e); return; }
+            applyTjmModelUI();
+            updateDashboard();
+        }
+        
+        // Load Settings
+        function loadSettings() {
+            document.getElementById('margin-cgdim').value = settings.marginCgdim;
+            document.getElementById('margin-outsourcing').value = settings.marginOutsourcing;
+            document.getElementById('productive-days-budget').value = settings.productiveDaysBudget;
+            document.getElementById('exchange-rate-budget').value = settings.exchangeRateBudget;
+            document.getElementById('tjm-model').value = settings.tjmModel;
+            
+            if (settings.overhead) {
+                document.getElementById('overhead-rent').value = settings.overhead.rent || 0;
+                document.getElementById('overhead-maintenance').value = settings.overhead.maintenance || 0;
+                document.getElementById('overhead-cleaning').value = settings.overhead.cleaning || 0;
+                document.getElementById('overhead-telecoms').value = settings.overhead.telecoms || 0;
+                document.getElementById('overhead-depreciation').value = settings.overhead.depreciation || 0;
+                document.getElementById('overhead-other').value = settings.overhead.other || 0;
+            }
+            applyTjmModelUI();
+        }
+        
+        // Save Settings (API)
+        async function saveSettings() {
+            const body = {
+                marginCgdim: parseFloat(document.getElementById('margin-cgdim').value),
+                marginOutsourcing: parseFloat(document.getElementById('margin-outsourcing').value),
+                productiveDaysBudget: parseInt(document.getElementById('productive-days-budget').value),
+                exchangeRateBudget: parseFloat(document.getElementById('exchange-rate-budget').value)
+            };
+            try {
+                await api('/settings', { method: 'PUT', body: JSON.stringify(body) });
+                Object.assign(settings, body);
+                alert('✅ Paramètres sauvegardés !');
+                updateDashboard();
+            } catch (e) { alert('Erreur: ' + (e.message || e)); }
+        }
+        
+        async function saveOverhead() {
+            const body = {
+                rent: parseFloat(document.getElementById('overhead-rent').value) || 0,
+                maintenance: parseFloat(document.getElementById('overhead-maintenance').value) || 0,
+                cleaning: parseFloat(document.getElementById('overhead-cleaning').value) || 0,
+                telecoms: parseFloat(document.getElementById('overhead-telecoms').value) || 0,
+                depreciation: parseFloat(document.getElementById('overhead-depreciation').value) || 0,
+                other: parseFloat(document.getElementById('overhead-other').value) || 0
+            };
+            try {
+                await api('/settings/overhead', { method: 'PUT', body: JSON.stringify(body) });
+                settings.overhead = body;
+                alert('✅ Frais généraux sauvegardés !');
+                renderIndirectAllocation();
+            } catch (e) { alert('Erreur: ' + (e.message || e)); }
+        }
+        
+        // Update All Selects
+        function updateAllSelects() {
+            // Update profile selects
+            const profileSelects = [
+                document.getElementById('tjm-profile-select'),
+                document.getElementById('res-profile')
+            ];
+            
+            profileSelects.forEach(select => {
+                if (!select) return;
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Sélectionner...</option>';
+                profiles.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = p.name;
+                    select.appendChild(option);
+                });
+                if (currentValue) select.value = currentValue;
+            });
+            
+            // Update level selects
+            const levelSelects = [
+                document.getElementById('tjm-level-select'),
+                document.getElementById('res-level')
+            ];
+            
+            levelSelects.forEach(select => {
+                if (!select) return;
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Sélectionner...</option>';
+                levels.forEach(l => {
+                    const option = document.createElement('option');
+                    option.value = l.id;
+                    option.textContent = `Niveau ${l.number}${l.label ? ' - ' + l.label : ''}`;
+                    select.appendChild(option);
+                });
+                if (currentValue) select.value = currentValue;
+            });
+            
+            // Update client selects
+            const clientSelects = [
+                document.getElementById('res-client'),
+                document.getElementById('charge-client')
+            ];
+            
+            clientSelects.forEach(select => {
+                if (!select) return;
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Sélectionner...</option>';
+                clients.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.id;
+                    option.textContent = c.name;
+                    select.appendChild(option);
+                });
+                if (currentValue) select.value = currentValue;
+            });
+            
+            // Update resource select
+            const resourceSelect = document.getElementById('charge-resource');
+            if (resourceSelect) {
+                const currentValue = resourceSelect.value;
+                resourceSelect.innerHTML = '<option value="">Sélectionner...</option>';
+                resources.filter(r => r.type === 'productive').forEach(r => {
+                    const option = document.createElement('option');
+                    option.value = r.id;
+                    option.textContent = r.name;
+                    resourceSelect.appendChild(option);
+                });
+                if (currentValue) resourceSelect.value = currentValue;
+            }
+        }
+        
+        // Forms (API First)
+        document.getElementById('profile-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                await api('/profiles', { method: 'POST', body: JSON.stringify({ name: document.getElementById('profile-name').value, code: document.getElementById('profile-code').value, avgSalary: parseFloat(document.getElementById('profile-avg-salary').value) || 0 }) });
+                this.reset(); alert('✅ Profil ajouté !'); await loadAllData();
+            } catch (err) { alert('Erreur: ' + (err.message || err)); }
+        });
+        document.getElementById('level-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                await api('/levels', { method: 'POST', body: JSON.stringify({ number: parseInt(document.getElementById('level-number').value), label: document.getElementById('level-label').value, avgSalary: parseFloat(document.getElementById('level-avg-salary').value) || 0 }) });
+                this.reset(); alert('✅ Niveau ajouté !'); await loadAllData();
+            } catch (err) { alert('Erreur: ' + (err.message || err)); }
+        });
+        document.getElementById('tjm-profile-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const profileId = document.getElementById('tjm-profile-select').value;
+            try {
+                await api('/tjm/profile/' + profileId, { method: 'POST', body: JSON.stringify({ value: parseFloat(document.getElementById('tjm-profile-value').value), date: document.getElementById('tjm-profile-date').value || new Date().toISOString().split('T')[0] }) });
+                this.reset(); alert('✅ TJM défini !'); await loadAllData();
+            } catch (err) { alert('Erreur: ' + (err.message || err)); }
+        });
+        document.getElementById('tjm-level-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const levelId = document.getElementById('tjm-level-select').value;
+            try {
+                await api('/tjm/level/' + levelId, { method: 'POST', body: JSON.stringify({ value: parseFloat(document.getElementById('tjm-level-value').value), date: document.getElementById('tjm-level-date').value || new Date().toISOString().split('T')[0] }) });
+                this.reset(); alert('✅ TJM défini !'); await loadAllData();
+            } catch (err) { alert('Erreur: ' + (err.message || err)); }
+        });
+        document.getElementById('resource-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                await api('/resources', { method: 'POST', body: JSON.stringify({
+                    type: document.getElementById('res-type').value, name: document.getElementById('res-name').value,
+                    profileId: document.getElementById('res-profile').value || null, levelId: document.getElementById('res-level').value || null,
+                    entity: document.getElementById('res-entity').value, clientId: document.getElementById('res-client').value || null,
+                    department: document.getElementById('res-department').value || null, salary: parseFloat(document.getElementById('res-salary').value),
+                    bonus: parseFloat(document.getElementById('res-bonus').value) || 0, startDate: document.getElementById('res-start-date').value
+                }) });
+                this.reset(); alert('✅ Ressource ajoutée !'); await loadAllData();
+            } catch (err) { alert('Erreur: ' + (err.message || err)); }
+        });
+        document.getElementById('client-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                await api('/clients', { method: 'POST', body: JSON.stringify({ name: document.getElementById('client-name').value, code: document.getElementById('client-code').value, description: document.getElementById('client-description').value }) });
+                this.reset(); alert('✅ Client ajouté !'); await loadAllData();
+            } catch (err) { alert('Erreur: ' + (err.message || err)); }
+        });
+        document.getElementById('charge-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            try {
+                await api('/charges', { method: 'POST', body: JSON.stringify({
+                    type: document.getElementById('charge-type').value, clientId: document.getElementById('charge-client').value,
+                    resourceId: document.getElementById('charge-resource').value || null, amount: parseFloat(document.getElementById('charge-amount').value),
+                    date: document.getElementById('charge-date').value, description: document.getElementById('charge-description').value
+                }) });
+                this.reset(); alert('✅ Charge ajoutée !'); await loadAllData();
+            } catch (err) { alert('Erreur: ' + (err.message || err)); }
+        });
+        
+        // Calculate TJM for Resource
+        function getResourceTjm(resource) {
+            if (settings.tjmModel === 'profile' && resource.profileId) {
+                return tjmGrids.profile[resource.profileId]?.value || 0;
+            } else if (settings.tjmModel === 'level' && resource.levelId) {
+                return tjmGrids.level[resource.levelId]?.value || 0;
+            }
+            return 0;
+        }
+        
+        // Update Dashboard
+        function updateDashboard() {
+            const productive = resources.filter(r => r.type === 'productive');
+            const nonProductive = resources.filter(r => r.type === 'non-productive');
+            
+            // Calculate CA
+            let totalCa = 0;
+            productive.forEach(r => {
+                const tjm = getResourceTjm(r);
+                totalCa += tjm * 20; // 20 jours/mois
+            });
+            
+            // Add refacturable charges
+            const monthlyCharges = charges.reduce((sum, c) => sum + c.amount, 0);
+            totalCa += monthlyCharges / settings.exchangeRateBudget; // Convert to EUR
+            
+            // Add margin
+            const margin = totalCa * (settings.marginCgdim / 100);
+            totalCa += margin;
+            
+            // Direct costs
+            const directCosts = productive.reduce((sum, r) => sum + r.salary + r.bonus, 0) + monthlyCharges;
+            
+            // Indirect costs
+            const nonProductiveSalaries = nonProductive.reduce((sum, r) => sum + r.salary + r.bonus, 0);
+            const overheadTotal = Object.values(settings.overhead || {}).reduce((sum, v) => sum + v, 0);
+            const indirectCosts = nonProductiveSalaries + overheadTotal;
+            
+            // Update KPIs
+            document.getElementById('kpi-productive').textContent = productive.length;
+            document.getElementById('kpi-non-productive').textContent = nonProductive.length;
+            document.getElementById('kpi-total-ca').textContent = totalCa.toLocaleString('fr-FR', {maximumFractionDigits: 0}) + ' €';
+            document.getElementById('kpi-direct-costs').textContent = (directCosts / settings.exchangeRateBudget).toLocaleString('fr-FR', {maximumFractionDigits: 0}) + ' €';
+            document.getElementById('kpi-indirect-costs').textContent = (indirectCosts / settings.exchangeRateBudget).toLocaleString('fr-FR', {maximumFractionDigits: 0}) + ' €';
+            
+            const exploitationMargin = totalCa - (directCosts + indirectCosts) / settings.exchangeRateBudget;
+            document.getElementById('kpi-margin').textContent = exploitationMargin.toLocaleString('fr-FR', {maximumFractionDigits: 0}) + ' €';
+            
+            // Update info
+            document.getElementById('active-grid-model').textContent = settings.tjmModel === 'profile' ? 'Par Profil (2026)' : 'Par Niveau (2027+)';
+            document.getElementById('productive-days-year').textContent = settings.productiveDaysBudget;
+            document.getElementById('budget-exchange-rate').textContent = settings.exchangeRateBudget.toFixed(2) + ' MAD/EUR';
+            
+            renderDashboardBreakdowns();
+            renderCharts();
+        }
+        
+        let chartProfileCa = null, chartClientsCa = null, chartKpiSummary = null;
+        function renderCharts() {
+            if (typeof Chart === 'undefined') return;
+            const productive = resources.filter(r => r.type === 'productive');
+            const profileBreakdown = {};
+            productive.forEach(r => {
+                const profile = profiles.find(p => p.id == r.profileId);
+                if (profile) {
+                    if (!profileBreakdown[profile.name]) profileBreakdown[profile.name] = 0;
+                    profileBreakdown[profile.name] += getResourceTjm(r) * 20;
+                }
+            });
+            const clientCa = {};
+            productive.filter(r => r.clientId).forEach(r => {
+                const client = clients.find(c => c.id == r.clientId);
+                if (client) {
+                    if (!clientCa[client.name]) clientCa[client.name] = 0;
+                    clientCa[client.name] += getResourceTjm(r) * 20;
+                }
+            });
+            const topClients = Object.entries(clientCa).sort((a,b) => b[1]-a[1]).slice(0, 6);
+            
+            const ctx1 = document.getElementById('chart-profile-ca');
+            if (ctx1) {
+                if (chartProfileCa) chartProfileCa.destroy();
+                chartProfileCa = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(profileBreakdown),
+                        datasets: [{ data: Object.values(profileBreakdown), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'], borderWidth: 0 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+            const ctx2 = document.getElementById('chart-clients-ca');
+            if (ctx2) {
+                if (chartClientsCa) chartClientsCa.destroy();
+                chartClientsCa = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: topClients.map(c => c[0]),
+                        datasets: [{ label: 'CA (€)', data: topClients.map(c => c[1]), backgroundColor: '#3b82f6', borderRadius: 6 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true } } }
+                });
+            }
+            let totalCaEur = 0;
+            productive.forEach(r => { totalCaEur += getResourceTjm(r) * 20; });
+            const monthlyCharges = charges.reduce((sum, c) => sum + c.amount, 0);
+            totalCaEur += monthlyCharges / settings.exchangeRateBudget;
+            totalCaEur += totalCaEur * (settings.marginCgdim / 100);
+            const directCosts = productive.reduce((sum, r) => sum + r.salary + r.bonus, 0) + monthlyCharges;
+            const indirectCosts = resources.filter(r => r.type === 'non-productive').reduce((sum, r) => sum + r.salary + r.bonus, 0) + Object.values(settings.overhead || {}).reduce((s,v) => s+v, 0);
+            const directEur = directCosts / settings.exchangeRateBudget;
+            const indirectEur = indirectCosts / settings.exchangeRateBudget;
+            const marginEur = totalCaEur - directEur - indirectEur;
+            const ctx3 = document.getElementById('chart-kpi-summary');
+            if (ctx3) {
+                if (chartKpiSummary) chartKpiSummary.destroy();
+                chartKpiSummary = new Chart(ctx3, {
+                    type: 'bar',
+                    data: {
+                        labels: ['CA Total', 'Charges Directes', 'Charges Indirectes', 'Marge'],
+                        datasets: [{ label: '€', data: [Math.round(totalCaEur), Math.round(directEur), Math.round(indirectEur), Math.round(marginEur)], backgroundColor: ['#3b82f6','#f59e0b','#ef4444','#10b981'], borderRadius: 6 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+                });
+            }
+        }
+        
+        // Render Dashboard Breakdowns
+        function renderDashboardBreakdowns() {
+            // Profile breakdown
+            const profileBreakdown = {};
+            resources.filter(r => r.type === 'productive').forEach(r => {
+                const profile = profiles.find(p => p.id == r.profileId);
+                if (profile) {
+                    if (!profileBreakdown[profile.id]) {
+                        profileBreakdown[profile.id] = { name: profile.name, count: 0, ca: 0 };
+                    }
+                    profileBreakdown[profile.id].count++;
+                    profileBreakdown[profile.id].ca += getResourceTjm(r) * 20;
+                }
+            });
+            
+            let html = '<table><thead><tr><th>Profil</th><th>Effectifs</th><th>CA Mensuel</th></tr></thead><tbody>';
+            Object.values(profileBreakdown).forEach(p => {
+                html += `<tr><td>${p.name}</td><td>${p.count}</td><td><strong>${p.ca.toLocaleString('fr-FR')} €</strong></td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('dashboard-profile-breakdown').innerHTML = html || '<div style="padding:20px; text-align:center; color:#999;">Aucune donnée</div>';
+            
+            // Top clients
+            const clientCa = {};
+            resources.filter(r => r.type === 'productive' && r.clientId).forEach(r => {
+                const client = clients.find(c => c.id == r.clientId);
+                if (client) {
+                    if (!clientCa[client.id]) {
+                        clientCa[client.id] = { name: client.name, ca: 0 };
+                    }
+                    clientCa[client.id].ca += getResourceTjm(r) * 20;
+                }
+            });
+            
+            const topClients = Object.values(clientCa).sort((a, b) => b.ca - a.ca).slice(0, 5);
+            html = '<table><thead><tr><th>Client</th><th>CA Mensuel</th></tr></thead><tbody>';
+            topClients.forEach(c => {
+                html += `<tr><td>${c.name}</td><td><strong>${c.ca.toLocaleString('fr-FR')} €</strong></td></tr>`;
+            });
+            html += '</tbody></table>';
+            document.getElementById('dashboard-top-clients').innerHTML = html || '<div style="padding:20px; text-align:center; color:#999;">Aucune donnée</div>';
+        }
+        
+        // Render All Tables (simplified for brevity - implement each)
+        function renderAllTables() {
+            renderProfilesTable();
+            renderLevelsTable();
+            renderTjmTables();
+            renderResourcesTable();
+            renderClientsTable();
+            renderChargesTable();
+        }
+        
+        function renderProfilesTable() {
+            const container = document.getElementById('profiles-table');
+            if (profiles.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Aucun profil</div>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Nom</th><th>Code</th><th>Salaire Moyen (MAD)</th><th>Actions</th></tr></thead><tbody>';
+            profiles.forEach(p => {
+                html += `<tr><td>${p.name}</td><td><span class="badge badge-profile">${p.code}</span></td><td>${p.avgSalary.toLocaleString('fr-FR')} MAD</td><td><button class="btn btn-danger btn-small" onclick="deleteProfile(${p.id})">Supprimer</button></td></tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function renderLevelsTable() {
+            const container = document.getElementById('levels-table');
+            if (levels.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Aucun niveau</div>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Niveau</th><th>Libellé</th><th>Salaire Moyen (MAD)</th><th>Actions</th></tr></thead><tbody>';
+            levels.forEach(l => {
+                html += `<tr><td><span class="badge badge-level">Niveau ${l.number}</span></td><td>${l.label || '-'}</td><td>${l.avgSalary.toLocaleString('fr-FR')} MAD</td><td><button class="btn btn-danger btn-small" onclick="deleteLevel(${l.id})">Supprimer</button></td></tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function renderTjmTables() {
+            // Profile TJM
+            const profileContainer = document.getElementById('tjm-profile-table');
+            let html = '<table><thead><tr><th>Profil</th><th>TJM (EUR)</th><th>Date Application</th></tr></thead><tbody>';
+            Object.keys(tjmGrids.profile).forEach(profileId => {
+                const profile = profiles.find(p => p.id == profileId);
+                const tjm = tjmGrids.profile[profileId];
+                if (profile) {
+                    html += `<tr><td>${profile.name}</td><td><strong>${tjm.value} €</strong></td><td>${new Date(tjm.date).toLocaleDateString('fr-FR')}</td></tr>`;
+                }
+            });
+            html += '</tbody></table>';
+            profileContainer.innerHTML = html;
+            
+            // Level TJM
+            const levelContainer = document.getElementById('tjm-level-table');
+            html = '<table><thead><tr><th>Niveau</th><th>TJM (EUR)</th><th>Date Application</th></tr></thead><tbody>';
+            Object.keys(tjmGrids.level).forEach(levelId => {
+                const level = levels.find(l => l.id == levelId);
+                const tjm = tjmGrids.level[levelId];
+                if (level) {
+                    html += `<tr><td>Niveau ${level.number}</td><td><strong>${tjm.value} €</strong></td><td>${new Date(tjm.date).toLocaleDateString('fr-FR')}</td></tr>`;
+                }
+            });
+            html += '</tbody></table>';
+            levelContainer.innerHTML = html;
+        }
+        
+        function renderResourcesTable() {
+            const container = document.getElementById('resources-table');
+            if (resources.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Aucune ressource</div>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Nom</th><th>Type</th><th>Profil/Niveau</th><th>Client/Dept</th><th>Salaire+Primes (MAD)</th><th>TJM (EUR)</th><th>Actions</th></tr></thead><tbody>';
+            resources.forEach(r => {
+                const profile = profiles.find(p => p.id == r.profileId);
+                const level = levels.find(l => l.id == r.levelId);
+                const client = clients.find(c => c.id == r.clientId);
+                const tjm = r.type === 'productive' ? getResourceTjm(r) : 0;
+                
+                html += `<tr>
+                    <td>${r.name}</td>
+                    <td>${r.type === 'productive' ? 'Productif' : 'Non-Productif'}</td>
+                    <td>${profile ? profile.name : ''} ${level ? 'N' + level.number : ''}</td>
+                    <td>${client ? client.name : r.department || '-'}</td>
+                    <td>${(r.salary + r.bonus).toLocaleString('fr-FR')} MAD</td>
+                    <td><strong>${tjm} €</strong></td>
+                    <td><button class="btn btn-danger btn-small" onclick="deleteResource(${r.id})">Suppr.</button></td>
+                </tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function renderClientsTable() {
+            const container = document.getElementById('clients-table');
+            if (clients.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Aucun client</div>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Nom</th><th>Code</th><th>Ressources</th><th>Description</th><th>Actions</th></tr></thead><tbody>';
+            clients.forEach(c => {
+                const resCount = resources.filter(r => r.clientId == c.id).length;
+                html += `<tr><td>${c.name}</td><td><span class="badge badge-cgdim">${c.code}</span></td><td>${resCount}</td><td>${c.description || '-'}</td><td><button class="btn btn-danger btn-small" onclick="deleteClient(${c.id})">Supprimer</button></td></tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function renderChargesTable() {
+            const container = document.getElementById('charges-table');
+            if (charges.length === 0) {
+                container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Aucune charge</div>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Type</th><th>Client</th><th>Montant (MAD)</th><th>Date</th><th>Description</th><th>Actions</th></tr></thead><tbody>';
+            charges.forEach(c => {
+                const client = clients.find(cl => cl.id == c.clientId);
+                html += `<tr><td><span class="badge badge-refacturable">${c.type}</span></td><td>${client ? client.name : '-'}</td><td><strong>${c.amount.toLocaleString('fr-FR')} MAD</strong></td><td>${new Date(c.date).toLocaleDateString('fr-FR')}</td><td>${c.description || '-'}</td><td><button class="btn btn-danger btn-small" onclick="deleteCharge(${c.id})">Suppr.</button></td></tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        // Calculate Billing (API)
+        async function calculateBilling() {
+            const month = document.getElementById('billing-month').value;
+            if (!month) return;
+            const days = parseInt(document.getElementById('billing-working-days').value) || 20;
+            const exchangeRate = parseFloat(document.getElementById('billing-exchange-rate').value) || 10.80;
+            try {
+                const res = await api(`/billing?month=${encodeURIComponent(month)}&days=${days}&exchange_rate=${exchangeRate}`);
+                const container = document.getElementById('billing-results');
+                let html = `<div class="table-container"><div class="table-header"><div class="table-title">💰 Facturation ${new Date(month + '-01').toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'})}</div></div><table><thead><tr><th>Client</th><th>Ressources</th><th>CA Base (TJM)</th><th>Charges Refact.</th><th>Sous-total</th><th>Marge PT</th><th>Total à Facturer</th></tr></thead><tbody>`;
+                (res.lines || []).forEach(b => {
+                    html += `<tr><td>${b.client.name}</td><td>${b.resources}</td><td>${b.baseCa.toLocaleString('fr-FR')} €</td><td>${(b.charges/exchangeRate).toLocaleString('fr-FR')} €</td><td>${b.baseCa.toLocaleString('fr-FR')} €</td><td>+${b.margin.toLocaleString('fr-FR')} €</td><td><strong>${b.total.toLocaleString('fr-FR')} €</strong></td></tr>`;
+                });
+                html += `<tr style="background:#f0f9ff; font-weight:bold;"><td colspan="6">TOTAL</td><td>${(res.grandTotal || 0).toLocaleString('fr-FR')} €</td></tr></tbody></table></div>`;
+                container.innerHTML = html;
+            } catch (e) { document.getElementById('billing-results').innerHTML = '<div class="info-box">Erreur: ' + (e.message || e) + '</div>'; }
+        }
+        
+        // Render Indirect Allocation
+        function renderIndirectAllocation() {
+            const productive = resources.filter(r => r.type === 'productive');
+            const totalProductiveSalaries = productive.reduce((sum, r) => sum + r.salary + r.bonus, 0);
+            const totalProductiveCount = productive.length;
+            
+            const nonProductive = resources.filter(r => r.type === 'non-productive');
+            const totalNonProductiveSalaries = nonProductive.reduce((sum, r) => sum + r.salary + r.bonus, 0);
+            
+            const overheadTotal = Object.values(settings.overhead || {}).reduce((sum, v) => sum + v, 0);
+            
+            // Allocate by client
+            const allocation = {};
+            
+            clients.forEach(client => {
+                const clientResources = productive.filter(r => r.clientId == client.id);
+                const clientSalaries = clientResources.reduce((sum, r) => sum + r.salary + r.bonus, 0);
+                const clientCount = clientResources.length;
+                
+                // Non-productive allocation (by salary)
+                const nonProdAlloc = totalProductiveSalaries > 0 ? (clientSalaries / totalProductiveSalaries) * totalNonProductiveSalaries : 0;
+                
+                // Overhead allocation (by headcount)
+                const overheadAlloc = totalProductiveCount > 0 ? (clientCount / totalProductiveCount) * overheadTotal : 0;
+                
+                if (clientResources.length > 0) {
+                    allocation[client.id] = {
+                        client,
+                        resources: clientCount,
+                        salaries: clientSalaries,
+                        nonProdAlloc,
+                        overheadAlloc,
+                        total: nonProdAlloc + overheadAlloc
+                    };
+                }
+            });
+            
+            const container = document.getElementById('indirect-allocation-table');
+            let html = '<table><thead><tr><th>Client</th><th>Ressources</th><th>Masse Salariale</th><th>Alloc. Non-Productifs</th><th>Alloc. Frais Gén.</th><th>Total Indirect</th></tr></thead><tbody>';
+            
+            Object.values(allocation).forEach(a => {
+                html += `<tr><td>${a.client.name}</td><td>${a.resources}</td><td>${a.salaries.toLocaleString('fr-FR')} MAD</td><td>${a.nonProdAlloc.toLocaleString('fr-FR')} MAD</td><td>${a.overheadAlloc.toLocaleString('fr-FR')} MAD</td><td><strong>${a.total.toLocaleString('fr-FR')} MAD</strong></td></tr>`;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        // Render Variances
+        function renderVariances() {
+            // Salary variance by profile
+            const salaryVariance = {};
+            profiles.forEach(profile => {
+                const profileResources = resources.filter(r => r.profileId == profile.id);
+                if (profileResources.length > 0) {
+                    const avgRealSalary = profileResources.reduce((sum, r) => sum + r.salary + r.bonus, 0) / profileResources.length;
+                    const variance = avgRealSalary - profile.avgSalary;
+                    const variancePct = profile.avgSalary > 0 ? (variance / profile.avgSalary * 100).toFixed(1) : 0;
+                    
+                    salaryVariance[profile.id] = {
+                        name: profile.name,
+                        budget: profile.avgSalary,
+                        real: avgRealSalary,
+                        variance,
+                        variancePct
+                    };
+                }
+            });
+            
+            const container = document.getElementById('salary-variance-table');
+            let html = '<table><thead><tr><th>Profil</th><th>Salaire Budget</th><th>Salaire Réel Moyen</th><th>Écart</th><th>Écart %</th></tr></thead><tbody>';
+            Object.values(salaryVariance).forEach(v => {
+                const varianceClass = v.variance >= 0 ? 'variance-positive' : 'variance-negative';
+                html += `<tr><td>${v.name}</td><td>${v.budget.toLocaleString('fr-FR')} MAD</td><td>${v.real.toLocaleString('fr-FR')} MAD</td><td class="${varianceClass}">${v.variance >= 0 ? '+' : ''}${v.variance.toLocaleString('fr-FR')} MAD</td><td class="${varianceClass}">${v.variance >= 0 ? '+' : ''}${v.variancePct}%</td></tr>`;
+            });
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            
+            // Days variance (simplified - would need actual tracking)
+            const daysContainer = document.getElementById('days-variance-table');
+            html = '<table><thead><tr><th>Période</th><th>Jours Budget</th><th>Jours Réels</th><th>Écart</th></tr></thead><tbody>';
+            html += `<tr><td>Année 2026</td><td>${settings.productiveDaysBudget}</td><td>${settings.productiveDaysBudget}</td><td class="variance-positive">0</td></tr>`;
+            html += '</tbody></table>';
+            daysContainer.innerHTML = html;
+            
+            // Exchange rate variance
+            const exchangeContainer = document.getElementById('exchange-rate-variance');
+            html = '<table><thead><tr><th>Taux Budget</th><th>Taux BKM Mensuel</th><th>Impact sur CA (exemple)</th></tr></thead><tbody>';
+            const budgetRate = settings.exchangeRateBudget;
+            const currentRate = parseFloat(document.getElementById('billing-exchange-rate')?.value || budgetRate);
+            const exampleCa = 100000; // Example CA in EUR
+            const impact = (exampleCa * currentRate) - (exampleCa * budgetRate);
+            const impactClass = impact >= 0 ? 'variance-positive' : 'variance-negative';
+            html += `<tr><td>${budgetRate.toFixed(2)} MAD/EUR</td><td>${currentRate.toFixed(2)} MAD/EUR</td><td class="${impactClass}">Pour 100k€ CA: ${impact >= 0 ? '+' : ''}${impact.toLocaleString('fr-FR')} MAD</td></tr>`;
+            html += '</tbody></table>';
+            exchangeContainer.innerHTML = html;
+        }
+        
+        // Delete Functions (API)
+        async function deleteProfile(id) {
+            if (!confirm('Supprimer ce profil ?')) return;
+            try { await api('/profiles/' + id, { method: 'DELETE' }); await loadAllData(); } catch (e) { alert('Erreur: ' + (e.message || e)); }
+        }
+        async function deleteLevel(id) {
+            if (!confirm('Supprimer ce niveau ?')) return;
+            try { await api('/levels/' + id, { method: 'DELETE' }); await loadAllData(); } catch (e) { alert('Erreur: ' + (e.message || e)); }
+        }
+        async function deleteResource(id) {
+            if (!confirm('Supprimer cette ressource ?')) return;
+            try { await api('/resources/' + id, { method: 'DELETE' }); await loadAllData(); } catch (e) { alert('Erreur: ' + (e.message || e)); }
+        }
+        async function deleteClient(id) {
+            if (!confirm('Supprimer ce client ?')) return;
+            try { await api('/clients/' + id, { method: 'DELETE' }); await loadAllData(); } catch (e) { alert('Erreur: ' + (e.message || e)); }
+        }
+        async function deleteCharge(id) {
+            if (!confirm('Supprimer cette charge ?')) return;
+            try { await api('/charges/' + id, { method: 'DELETE' }); await loadAllData(); } catch (e) { alert('Erreur: ' + (e.message || e)); }
+        }
+        
+        // Export/Reset (API)
+        async function exportAllData() {
+            try {
+                const data = await api('/export');
+                const json = JSON.stringify(data, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `cgdim_backup_${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+            } catch (e) { alert('Erreur: ' + (e.message || e)); }
+        }
+        async function resetAllData() {
+            if (!confirm('⚠️ Supprimer TOUTES les données ?')) return;
+            try { await api('/settings/reset', { method: 'POST' }); await loadAllData(); alert('✅ Données réinitialisées'); } catch (e) { alert('Erreur: ' + (e.message || e)); }
+        }
+    </script>
+</body>
+</html>

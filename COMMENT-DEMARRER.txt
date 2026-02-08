@@ -1,0 +1,57 @@
+========================================
+  CGDim (appli-nidal) - Comment demarrer
+========================================
+
+PREREQUIS
+---------
+- Java 17+ (pour le backend Spring Boot)
+- Maven (mvn en ligne de commande)
+- Node.js installe (pour le frontend)
+- PostgreSQL installe et demarre (service en cours d'execution)
+
+DEMARRAGE EN 2 ETAPES
+---------------------
+
+0. (Une seule fois) Creer la base PostgreSQL
+   -> Ouvrez pgAdmin (ou psql), connectez-vous en tant que postgres.
+   -> Executez le script : backend-spring\creer-base-cgdim.sql
+   -> Cela cree l'utilisateur "cgdim", le mot de passe "cgdim" et la base "cgdim".
+
+1. Lancer le BACKEND (obligatoire en premier)
+   -> Double-cliquez sur : 1-DEMARRER-BACKEND.bat
+   -> Une fenetre s'ouvre. Attendez le message :
+      "Started CgdimApplication in X.XXX seconds"
+   -> Ne fermez pas cette fenetre.
+
+2. Lancer le FRONTEND
+   -> Double-cliquez sur : 2-DEMARRER-FRONTEND.bat
+   -> Une deuxieme fenetre s'ouvre avec Vite.
+   -> Ouvrez votre navigateur sur : http://localhost:5173
+
+ALTERNATIVE : TOUT EN UN CLIC
+-----------------------------
+-> Double-cliquez sur : DEMARRER-APPLICATION.bat
+   Cela ouvre d'abord le backend, attend 25 s, puis le frontend.
+   Puis ouvrez : http://localhost:5173
+
+EN CAS DE PROBLEME
+-----------------
+- "Le port 8080 est deja utilise" : fermez toute autre fenetre
+  qui tourne le backend, ou redemarrez le PC.
+
+- "npm n'est pas reconnu" : installez Node.js depuis
+  https://nodejs.org (version LTS) et redemarrez le PC.
+
+- "mvn n'est pas reconnu" : Maven doit etre installe et dans
+  le PATH. Vous pouvez aussi lancer le backend depuis votre
+  IDE (Visual Studio, IntelliJ, etc.) en lançant la classe
+  CgdimApplication dans backend-spring.
+
+- Page blanche sur localhost:5173 : verifiez que le backend
+  affiche bien "Started CgdimApplication" avant d'ouvrir
+  le frontend.
+
+- Erreur "Connection refused" ou "FATAL: database cgdim does not exist" :
+  PostgreSQL n'est pas demarre ou la base n'existe pas.
+  -> Demarrez le service PostgreSQL (Services Windows ou pg_ctl).
+  -> Executez backend-spring\creer-base-cgdim.sql (voir etape 0).

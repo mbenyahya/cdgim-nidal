@@ -1,0 +1,42 @@
+========================================
+  CGDim (appli-nidal) - Partager le repo
+========================================
+
+Le dossier C:\Users\moham\appli-nidal contient tout le code source avec :
+  - .gitignore   : exclut node_modules, target, .vs, etc.
+  - README.md    : presentation du projet
+  - Backend Spring (backend-spring), Frontend (frontend), scripts .bat
+
+OPTION 1 : Depot Git (recommandé)
+---------------------------------
+1. Installer Git : https://git-scm.com/download/win
+2. Double-cliquer sur : INITIALISER-REPO-GIT.bat
+   -> Cela cree le depot et le premier commit.
+3. Partager :
+   a) Via GitHub/GitLab : creer un repo vide sur le site, puis :
+      git remote add origin https://...votre-repo...
+      git branch -M main
+      git push -u origin main
+   b) Via dossier : copier tout le dossier appli-nidal (apres git init,
+      le dossier .git est present ; les autres n'ont pas node_modules/target
+      s'ils les suppriment avant de zipper, ou on partage avec .git et
+      le destinataire fait git clone ou recupere le zip et fait git init).
+
+OPTION 2 : Archive ZIP pour partage
+-----------------------------------
+1. Exclure du ZIP (pour reduire la taille) :
+   - frontend\node_modules\
+   - backend-spring\target\
+   - .vs\
+2. Inclure : tout le reste (backend-spring, frontend, .bat, .md, .gitignore)
+3. Le destinataire devra faire :
+   - cd frontend ^& npm install
+   - Creer la base PostgreSQL (creer-base-cgdim.sql)
+   - Lancer backend puis frontend (voir COMMENT-DEMARRER.txt)
+
+OPTION 3 : Cloner depuis un depot distant
+-----------------------------------------
+Si vous avez pousse le code sur GitHub/GitLab :
+  git clone https://...url-du-repo... appli-nidal
+  cd appli-nidal\frontend ^& npm install
+  (puis demarrer backend + frontend comme d'habitude)
